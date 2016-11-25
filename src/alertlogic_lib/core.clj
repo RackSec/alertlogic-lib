@@ -41,8 +41,9 @@
      bs/to-reader
      #(json/parse-stream % ->kebab-case-keyword))))
 
-(defn get-online-hosts-for-customer!
-  "Gets a list of online hosts for a given customer.
+(defn get-lm-devices-for-customer!
+  "Gets a list of devices active in the Alert Logic Log
+  Manager for a given customer.
 
   Provided customer-id must be the Alert Logic customer ID
   (an integer)."
@@ -53,9 +54,7 @@
           :let [{{:keys [name status metadata]} :host} host
                 device-status (:status status)
                 device-ips (:local-ipv-4 metadata)
-                device-type (:inst-type status)]
-          :when (and (= device-type "host")
-                     (= device-status "ok"))]
+                device-type (:inst-type status)]]
       {:name name
        :status device-status
        :ips device-ips

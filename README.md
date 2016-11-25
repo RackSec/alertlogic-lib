@@ -7,11 +7,11 @@ Clojure library used to fetch information from the Alert Logic APIs.
 
 ## Usage
 
-### Fetching all online hosts for a given customer
+### Fetching all Log Manager devices for a given customer
 
 ```clojure
 => (use 'alertlogic.core)
-=> (get-online-hosts-for-customer! "11111" sekret-api-key)
+=> (get-lm-devices-for-customer! "11111" sekret-api-key)
 16-11-25 19:39:43 INFO [alertlogic-lib.core] - fetching /api/lm/v1/11111/hosts
 ({:name "some-machine.rackspace.security",
   :status "ok",
