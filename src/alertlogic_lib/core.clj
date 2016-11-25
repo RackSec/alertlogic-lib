@@ -34,7 +34,7 @@
   [uri api-token]
   (info "fetching" uri)
   (let [headers (al-headers api-token)
-        url (str/join "" [base-url uri])]
+        url (str base-url uri)]
     (-> (md/chain
          (http/get url {:headers headers})
          :body
@@ -52,14 +52,13 @@
   Provided customer-id must be the Alert Logic customer ID
   (an integer)."
   [customer-id api-token]
-  (let [uri (str/join "" ["/api/lm/v1/" customer-id "/hosts"])
-        hosts (:hosts @(get-page! uri api-token))]
-    (for [host hosts
-          :let [{{:keys [name status metadata]} :host} host
-                device-status (:status status)
-                device-ips (:local-ipv-4 metadata)
-                device-type (:inst-type status)]]
-      {:name name
-       :status device-status
-       :ips device-ips
-       :type device-type})))
+  (let [uri (str "/api/lm/v1/" customer-id "/hosts")
+        hosts (:hosts @(get-page! uri api-token))
+        cleanup-host
+        (fn [host]
+          (let [{{:keys [name status metadata]} :host} host]
+            {:name name
+             :status (:status status)
+             :ips (:local-ipv-4 metadata)
+             :type (:inst-type status)}))]
+    (map cleanup-host hosts)))
