@@ -2,7 +2,8 @@
   :description "A library for interacting with Alert Logic APIs."
   :url "http://github.com/RackSec/alertlogic-lib"
   :license {:name "proprietary"}
-  :dependencies [[org.clojure/clojure "1.8.0"]]
+  :dependencies [[org.clojure/clojure "1.8.0"]
+                 [base64-clj "0.1.1"]]
   :plugins [[lein-cljfmt "0.3.0"]
             [jonase/eastwood "0.2.3"]
             [lein-cloverage "1.0.7-SNAPSHOT"]]
