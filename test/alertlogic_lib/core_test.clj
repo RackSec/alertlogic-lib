@@ -1,5 +1,7 @@
 (ns alertlogic-lib.core-test
   (:require [clojure.test :refer :all]
+            [cheshire.core :as json]
+            [manifold.deferred :as md]
             [alertlogic-lib.core :as alc :refer :all]))
 
 (deftest test-al-headers
@@ -14,3 +16,19 @@
                       "Authorization" (str "Basic " base64-token)}
             output (#'alc/al-headers token)]
         (is (= expected output))))))
+
+(deftest get-page!-tests
+  (testing "returns ::fetch-error on exception"
+    (let [fake-get
+          (fn [_addr _headers]
+            (md/error-deferred (Exception. "kaboom")))]
+      (with-redefs [aleph.http/get fake-get]
+        (is (= :alertlogic-lib.core/fetch-error
+               @(get-page! "" ""))))))
+  (testing "returns deserialized json body"
+    (let [fake-get
+          (fn [_addr _headers]
+            (md/success-deferred {:body (json/generate-string {:hosts []})}))]
+      (with-redefs [aleph.http/get fake-get]
+        (is (= {:hosts []}
+               @(get-page! "" "")))))))

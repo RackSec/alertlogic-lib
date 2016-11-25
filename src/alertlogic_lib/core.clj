@@ -7,7 +7,7 @@
    [camel-snake-kebab.core :refer [->kebab-case-keyword]]
    [cheshire.core :as json]
    [manifold.deferred :as md]
-   [taoensso.timbre :as timbre :refer [info]]))
+   [taoensso.timbre :as timbre :refer [info warn]]))
 
 (def base-url "https://publicapi.alertlogic.net")
 
@@ -35,11 +35,15 @@
   (info "fetching" uri)
   (let [headers (al-headers api-token)
         url (str/join "" [base-url uri])]
-    (md/chain
-     (http/get url {:headers headers})
-     :body
-     bs/to-reader
-     #(json/parse-stream % ->kebab-case-keyword))))
+    (-> (md/chain
+         (http/get url {:headers headers})
+         :body
+         bs/to-reader
+         #(json/parse-stream % ->kebab-case-keyword))
+        (md/catch
+         Exception
+         #(do (warn "problem fetching events page:" (.getMessage %))
+              ::fetch-error)))))
 
 (defn get-lm-devices-for-customer!
   "Gets a list of devices active in the Alert Logic Log
