@@ -1,9 +1,15 @@
 (ns alertlogic-lib.core
   (:require
    [clojure.string :as str]
-   [base64-clj.core :as base64]))
+   [aleph.http :as http]
+   [base64-clj.core :as base64]
+   [byte-streams :as bs]
+   [camel-snake-kebab.core :refer [->kebab-case-keyword]]
+   [cheshire.core :as json]
+   [manifold.deferred :as md]
+   [taoensso.timbre :as timbre :refer [info]]))
 
-(def base-url "https://api.alertlogic.net")
+(def base-url "https://publicapi.alertlogic.net")
 
 (defn ^:private auth-header
   "The Alert Logic API handles authentication by accepting an
@@ -19,3 +25,38 @@
   [api-token]
   (merge {"Accept" "application/json"}
          (auth-header api-token)))
+
+(defn get-page!
+  "Gets a page from the Alert Logic API.
+
+  The uri should begin with a '/'. The api-token is provided
+  for authentication by Alert Logic."
+  [uri api-token]
+  (info "fetching" uri)
+  (let [headers (al-headers api-token)
+        url (str/join "" [base-url uri])]
+    (md/chain
+     (http/get url {:headers headers})
+     :body
+     bs/to-reader
+     #(json/parse-stream % ->kebab-case-keyword))))
+
+(defn get-online-hosts-for-customer!
+  "Gets a list of online hosts for a given customer.
+
+  Provided customer-id must be the Alert Logic customer ID
+  (an integer)."
+  [customer-id api-token]
+  (let [uri (str/join "" ["/api/lm/v1/" customer-id "/hosts"])
+        hosts (:hosts @(get-page! uri api-token))]
+    (for [host hosts
+          :let [{{:keys [name status metadata]} :host} host
+                device-status (:status status)
+                device-ips (:local-ipv-4 metadata)
+                device-type (:inst-type status)]
+          :when (and (= device-type "host")
+                     (= device-status "ok"))]
+      {:name name
+       :status device-status
+       :ips device-ips
+       :type device-type})))
