@@ -7,7 +7,27 @@ Clojure library used to fetch information from the Alert Logic APIs.
 
 ## Usage
 
-FIXME
+### Fetching all online hosts for a given customer
+
+```clojure
+=> (use 'alertlogic.core)
+=> (get-online-hosts-for-customer! "11111" sekret-api-key)
+16-11-25 19:39:43 INFO [alertlogic-lib.core] - fetching /api/lm/v1/11111/hosts
+({:name "some-machine.rackspace.security",
+  :status "ok",
+  :ips ["192.168.0.129"],
+  :type "host"}
+ {:name "another.rackspace.security",
+  :status "ok",
+  :ips
+  ["192.168.10.50"
+   "192.168.10.51"],
+  :type "host"}
+ {:name "machineeee.rackspace.security",
+  :status "ok",
+  :ips ["192.168.0.130"],
+  :type "host"})
+```
 
 ## License
 
