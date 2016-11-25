@@ -14,8 +14,6 @@ after_success:
 - bash <(curl -s https://codecov.io/bash) -f target/coverage/codecov.json
 notifications:
   email: false
-#  slack:
-#    secure: token
-# env:
-#   global:
-#   - CODECOV_TOKEN=token
+  env:
+    global:
+    - CODECOV_TOKEN=b9b73e2d-0b70-471a-877e-953a29b89544
