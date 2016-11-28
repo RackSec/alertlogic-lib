@@ -1,0 +1,58 @@
+{:hosts
+ [{:host
+   {:name "123455",
+    :type "appliance",
+    :created {:at 1477915296, :by 0},
+    :modified {:at 1477915296, :by 0},
+    :customer {:id 1111},
+    :status
+    {:details [],
+     :inst_type "appliance",
+     :reported_by "clyde",
+     :status "ok",
+     :stream "offline",
+     :timestamp 1477915297},
+    :id "F83BEDB4-4027-1005-8535-0050568525D9",
+    :physical_appliance_id "F83BEDB4-4027-1005-8535-0050568525D9",
+    :update_policy {:id "B0D5C6EF-0007-1005-9BF4-080027CDAF96"},
+    :metadata
+    {:os_details
+     "Linux; 2.6.32-642.6.2.el6.x86_64; #1 SMP Wed Oct 26 06:52:09 UTC 2016; x86_64",
+     :local_hostname "123455",
+     :num_logical_processors 4,
+     :os_type "unix",
+     :total_mem_mb 15938,
+     :host_type "standalone",
+     :local_ipv6
+     ["fe80::be30:5bff:fee2:f0fd" "fe80::be30:5bff:fee2:f0fe"],
+     :version "1",
+     :local_ipv4 ["172.16.10.5"]}}}
+  {:host
+   {:name "987654",
+    :type "host",
+    :created {:at 1456887153, :by 0},
+    :modified {:at 1456887153, :by 0},
+    :customer {:id 1111},
+    :status
+    {:details [],
+     :inst_type "host",
+     :reported_by "clyde",
+     :status "offline",
+     :stream "offline",
+     :timestamp 1461077002},
+    :id "F8D4ABD7-2D07-1005-8673-0050568505BC",
+    :update_policy {:id "B0D5C6EF-0007-1005-9BF4-080027CDAF96"},
+    :metadata
+    {:os_details
+     "Linux; 2.6.32-573.22.1.el6.x86_64; #1 SMP Thu Mar 17 03:23:39 EDT 2016; x86_64",
+     :local_hostname "987654",
+     :num_logical_processors 24,
+     :is_role false,
+     :os_type "unix",
+     :total_mem_mb 129014,
+     :host_type "standalone",
+     :local_ipv6
+     ["fe80::baca:3aff:fe68:7d40" "fe80::baca:3aff:fe68:7d41"],
+     :version "1",
+     :local_ipv4 ["10.15.0.1" "192.168.0.13"]}}}],
+ :total_count 2}
