@@ -41,8 +41,7 @@
   (testing "handles an empty device list"
     (let [fake-get (fake-get-success {:hosts []})]
       (with-redefs [aleph.http/get fake-get]
-        (is (= '()
-               (get-lm-devices-for-customer! "1111" "some-token"))))))
+        (is (empty? (get-lm-devices-for-customer! "1111" "some-token"))))))
   (testing "handles some devices"
     (let [body (read-string (slurp (resource "test/hosts.edn")))
           fake-get (fake-get-success body)]
