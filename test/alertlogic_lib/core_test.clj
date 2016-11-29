@@ -37,6 +37,40 @@
         (is (= {:hosts []}
                @(get-page! "" "")))))))
 
+(deftest get-customers!-tests
+  (let [cj->id #'alertlogic-lib.core/customer-json-to-id-map
+        customers [{:customer-id 101 :customer-name "123-lol"}
+                   {:customer-id 1111 :customer-name "746228 Ltd."}]
+        customers-map {"123" "101"
+                       "746228" "1111"}
+        check-output (fn [input expected]
+                       (is (= expected (cj->id input))))]
+    (testing "handles empty case"
+      (check-output [] {}))
+    (testing "handles bad customer names"
+      (let [customer-data [{:customer-id 101 :customer-name "lol"}]]
+        (check-output customer-data {})))
+    (testing "handles good customer names"
+      (let [customer-data [{:customer-id 101 :customer-name "123-lol"}]]
+        (check-output customer-data {"123" "101"})))
+    (testing "handles many customers"
+      (check-output customers customers-map))
+    (let [root-customer-data {:api-key "supar-sekret"
+                              :customer-id 31337
+                              :customer-name "SuperCustomer"
+                              :child-chain customers}
+          fake-get (fake-get-success root-customer-data)]
+      (with-redefs [aleph.http/get fake-get]
+        (testing "handles download"
+          (let [expected customers
+                output (get-customers! "31337" "supar-sekret")]
+            (is (= expected output))))
+        (testing "handles download and formatting"
+          (let [expected {"123" "101"
+                          "746228" "1111"}
+                output (get-customers-map! "31337" "supar-sekret")]
+            (is (= expected output))))))))
+
 (deftest get-lm-devices!-tests
   (testing "handles an empty device list"
     (let [fake-get (fake-get-success {:hosts []})]
