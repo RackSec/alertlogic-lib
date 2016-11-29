@@ -56,12 +56,12 @@
   We rely on the convention that a 'customer ID' is a string
   of digits at the beginning of each child account's name."
   [customer-json]
-  (let [rack-id-pattern #"^\d+"
+  (let [cust-id-pattern #"^\d+"
         cleanup-customer
         (fn [customer]
           (let [customer-name (:customer-name customer)
                 customer-id (and customer-name  ;; don't match null name
-                                 (re-find rack-id-pattern customer-name))]
+                                 (re-find cust-id-pattern customer-name))]
             {:id customer-id
              :al-id (:customer-id customer)}))
         id-list (->> (map cleanup-customer customer-json)
@@ -72,15 +72,19 @@
     (reduce add-customer-to-map {} id-list)))
 
 (defn get-customers!
+  "Fetches customer info from the Alert Logic API."
+  [root-customer-id api-token]
+  (let [url (str base-url (format customer-api root-customer-id))]
+    (:child-chain @(get-page! url api-token))))
+
+(defn get-customers-map!
   "Given a root customer ID, returns a map of child customer
   IDs to Alert Logic IDs.
 
   Provided root-customer-id must correspond to an Alert Logic
   customer ID (integer string)."
   [root-customer-id api-token]
-  (let [url (str base-url (format customer-api root-customer-id))
-        customers (:child-chain @(get-page! url api-token))]
-    (customer-json-to-id-map customers)))
+  (customer-json-to-id-map (get-customers! root-customer-id api-token)))
 
 (defn get-lm-devices-for-customer!
   "Gets a list of devices active in the Alert Logic Log

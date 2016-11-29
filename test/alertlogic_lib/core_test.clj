@@ -55,16 +55,20 @@
         (check-output customer-data {"123" "101"})))
     (testing "handles many customers"
       (check-output customers customers-map))
-    (testing "handles download and handover"
-      (let [root-customer-data {:api-key "supar-sekret"
-                                :customer-id 31337
-                                :customer-name "SuperCustomer"
-                                :child-chain customers}
-            fake-get (fake-get-success root-customer-data)]
-        (with-redefs [aleph.http/get fake-get]
+    (let [root-customer-data {:api-key "supar-sekret"
+                              :customer-id 31337
+                              :customer-name "SuperCustomer"
+                              :child-chain customers}
+          fake-get (fake-get-success root-customer-data)]
+      (with-redefs [aleph.http/get fake-get]
+        (testing "handles download"
+          (let [expected customers
+                output (get-customers! "31337" "supar-sekret")]
+            (is (= expected output))))
+        (testing "handles download and formatting"
           (let [expected {"123" "101"
                           "746228" "1111"}
-                output (get-customers! "31337" "supar-sekret")]
+                output (get-customers-map! "31337" "supar-sekret")]
             (is (= expected output))))))))
 
 (deftest get-lm-devices!-tests
