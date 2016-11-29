@@ -33,4 +33,5 @@ Clojure library used to fetch information from the Alert Logic APIs.
 
 Copyright © 2016 Rackspace
 
-This software is proprietary.
+Distributed under the Eclipse Public License either version 1.0 or (at
+your option) any later version.
