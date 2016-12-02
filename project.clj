@@ -4,12 +4,12 @@
   :license {:name "Eclipse Public License"
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
-                 [aleph "0.4.1-beta2"]
+                 [aleph "0.4.1"]
                  [base64-clj "0.1.1"]
                  [camel-snake-kebab "0.4.0"]
-                 [cheshire "5.5.0"]
-                 [com.taoensso/timbre "4.2.0"]
-                 [manifold "0.1.4"]]
+                 [cheshire "5.6.3"]
+                 [com.taoensso/timbre "4.7.4"]
+                 [manifold "0.1.5"]]
   :plugins [[lein-cljfmt "0.3.0"]
             [jonase/eastwood "0.2.3"]
             [lein-cloverage "1.0.7-SNAPSHOT"]]
