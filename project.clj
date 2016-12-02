@@ -11,10 +11,11 @@
                  [cheshire "5.6.3"]
                  [com.taoensso/timbre "4.7.4"]
                  [manifold "0.1.5"]]
-  :plugins [[lein-cljfmt "0.5.6"]
+  :plugins [[lein-cljfmt "0.5.6" :exclusions [com.google.javascript/closure-compiler
+                                              org.clojure/clojurescript]]
             [jonase/eastwood "0.2.3"]
             [lein-cloverage "1.0.9"]]
-  :min-lein-version "2.0.0"
+  :min-lein-version "2.7.0"
   :profiles {:uberjar {:aot :all}
              :dev {:dependencies [[pjstadig/humane-test-output "0.8.1"]]
                    :injections [(require 'pjstadig.humane-test-output)
