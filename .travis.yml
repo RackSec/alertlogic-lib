@@ -3,8 +3,8 @@ jdk:
 - oraclejdk8
 cache:
   directories:
-  - "$HOME/.lein"
-  - "$HOME/.m2"
+  - $HOME/.lein
+  - $HOME/.m2
 script:
 - lein cljfmt check
 - lein eastwood
@@ -14,3 +14,5 @@ after_success:
 - bash <(curl -s https://codecov.io/bash) -f target/coverage/codecov.json
 notifications:
   email: false
+  slack:
+    secure: isVHGze4Mf323eDU6Wk5Hh5kTlF9OpFf+DNjWJz5XGhRjlkYOwPeJXBTKcJ9cTh9ODt3bOxb3wNg5nHmNNahspMyOweOFreLF1y6jwKPdo5tzzhTV9vpTTaUIrDE/zQPrjyqmzewqMBon6hvN2c11RQYgpaHPi/r4UZ38mI5xehRygcHe2C8rruWRocO7xxVHlLU6/lX82cJs7VNXI0daoqqYO3/oUzl+OowL2LJlpCFQ4FzE+MGFjWwHIUuXIbaWyPtDA3K9behGYcifGCDudstSkHHkfuTpwZRxQRGCRdjO8FPiXR4z59MV9/Ks0LgBuPPS742EvN+ycbzQ67ZuZ8Q/Z1HNiTgZds+ggimiA/fa6/iVEoVKrDB6/X6dtarVueLicVp1DRjRGbyNMbDChtfIa9N4oeYXVLtykg6GSW6yZFC99dY1t7mzi2F8Dlg5R7cM8l+TO0hzsiRb0TmIaY9LtaIcJMOzODNKDxbJMEqrimAr1ERTL2WG6tsTcTgiwd2jqlHWIeX46p30RUzQCZd6BMTC44pZitcW/8/OR/IP5kagRnZcWngnOMxJOgxCKPplAY2J26VEhS+0ajdPL8+fv6xAkKvhN2yRJOCGctFdRnnffkqPbgf8y2zULKzMpSfNbAjf6OgANZyJDyZdX6mFMaXpEGR414IvNHHkDw=
