@@ -58,12 +58,11 @@
   [customer-json]
   (let [cust-id-pattern #"^\d+"
         cleanup-customer
-        (fn [customer]
-          (let [customer-name (:customer-name customer)
-                customer-id (and customer-name  ;; don't match null name
+        (fn [{customer-name :customer-name, al-id :customer-id}]
+          (let [customer-id (and customer-name  ;; don't match null name
                                  (re-find cust-id-pattern customer-name))]
             {:id customer-id
-             :al-id (:customer-id customer)}))
+             :al-id al-id}))
         id-list (->> (map cleanup-customer customer-json)
                      (remove #(nil? (:id %))))  ;; might be some non-matches
         add-customer-to-map
