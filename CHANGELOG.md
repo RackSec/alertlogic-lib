@@ -1,3 +1,8 @@
+# 0.1.1
+
+Bugfix: get log manager device type at top-level of the returned JSON (instead
+of looking inside the status info).
+
 # 0.1.0
 
 Initial release.
