@@ -96,9 +96,9 @@
         hosts (:hosts @(get-page! url api-token))
         cleanup-host
         (fn [host]
-          (let [{{:keys [name status metadata]} :host} host]
+          (let [{{:keys [name status metadata type]} :host} host]
             {:name name
              :status (:status status)
              :ips (:local-ipv-4 metadata)
-             :type (:inst-type status)}))]
+             :type type}))]
     (map cleanup-host hosts)))
