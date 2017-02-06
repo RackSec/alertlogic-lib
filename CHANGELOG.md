@@ -1,3 +1,8 @@
+# 0.1.2
+
+Enhancement: warns user when they attempt to query Log Manager devices for a
+null customer, and prevents such requests from being sent.
+
 # 0.1.1
 
 Bugfix: get log manager device type at top-level of the returned JSON (instead
