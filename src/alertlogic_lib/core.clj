@@ -7,7 +7,7 @@
    [camel-snake-kebab.core :refer [->kebab-case-keyword]]
    [cheshire.core :as json]
    [manifold.deferred :as md]
-   [taoensso.timbre :as timbre :refer [info warn]]))
+   [taoensso.timbre :as timbre :refer [info error warn]]))
 
 ; NOTE(ehashman): depending on the API call, we need to use different base URLs
 (def base-url-public "https://publicapi.alertlogic.net")
@@ -92,13 +92,15 @@
   Provided customer-id must be the Alert Logic customer ID
   (integer string)."
   [customer-id api-token]
-  (let [url (str base-url-public (format lm-hosts-api customer-id))
-        hosts (:hosts @(get-page! url api-token))
-        cleanup-host
-        (fn [host]
-          (let [{{:keys [name status metadata type]} :host} host]
-            {:name name
-             :status (:status status)
-             :ips (:local-ipv-4 metadata)
-             :type type}))]
-    (map cleanup-host hosts)))
+  (if (nil? customer-id)
+    (error "Customer ID cannot be nil. Aborting.")
+    (let [url (str base-url-public (format lm-hosts-api customer-id))
+          hosts (:hosts @(get-page! url api-token))
+          cleanup-host
+          (fn [host]
+            (let [{{:keys [name status metadata type]} :host} host]
+              {:name name
+               :status (:status status)
+               :ips (:local-ipv-4 metadata)
+               :type type}))]
+      (map cleanup-host hosts))))
