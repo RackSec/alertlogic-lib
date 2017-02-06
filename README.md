@@ -1,5 +1,6 @@
 [![Build Status](https://travis-ci.com/RackSec/alertlogic-lib.svg?token=SsdaNZWmAMhuouKpWNZa&branch=master)](https://travis-ci.com/RackSec/alertlogic-lib)
 [![codecov](https://codecov.io/gh/RackSec/alertlogic-lib/branch/master/graph/badge.svg?token=PILVJJwrfX)](https://codecov.io/gh/RackSec/alertlogic-lib)
+[![Clojars Project](https://img.shields.io/clojars/v/alertlogic-lib.svg)](https://clojars.org/alertlogic-lib)
 
 # alertlogic-lib
 
