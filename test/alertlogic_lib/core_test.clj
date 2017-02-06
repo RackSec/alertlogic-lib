@@ -1,8 +1,10 @@
 (ns alertlogic-lib.core-test
   (:require [clojure.java.io :refer [resource]]
+            [clojure.string :as s]
             [clojure.test :refer :all]
             [cheshire.core :as json]
             [manifold.deferred :as md]
+            [taoensso.timbre :as timbre]
             [alertlogic-lib.core :as alc :refer :all]))
 
 (deftest test-al-headers
@@ -71,7 +73,32 @@
                 output (get-customers-map! "31337" "supar-sekret")]
             (is (= expected output))))))))
 
+(defn use-atom-log-appender!
+  "Adds a log observer that saves its log messages to an atom.
+
+  Returns an atom that wraps a vector of possible log messages"
+  []
+  (let [log (atom [])
+        log-appender-fn (fn [data]
+                          (let [{:keys [output-fn]} data
+                                formatted-output-str (output-fn data)]
+                            (swap! log conj formatted-output-str)))]
+    (timbre/merge-config!
+     {:appenders
+      {:atom-appender
+       {:async false
+        :enabled? true
+        :min-level nil
+        :output-fn :inherit
+        :fn log-appender-fn}}})
+    log))
+
 (deftest get-lm-devices!-tests
+  (testing "taps out when id is null"
+    (let [log (use-atom-log-appender!)]
+      (get-lm-devices-for-customer! nil "some-token")
+      (is (= 1 (count @log)))
+      (is (s/includes? (first @log) "Customer ID cannot be nil. Aborting."))))
   (testing "handles an empty device list"
     (let [fake-get (fake-get-success {:hosts []})]
       (with-redefs [aleph.http/get fake-get]
