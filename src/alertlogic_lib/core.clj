@@ -2,7 +2,6 @@
   (:require
    [clojure.string :as str]
    [aleph.http :as http]
-   [base64-clj.core :as base64]
    [byte-streams :as bs]
    [camel-snake-kebab.core :refer [->kebab-case-keyword]]
    [cheshire.core :as json]
@@ -16,38 +15,22 @@
 (def base-url "https://api.alertlogic.net")
 (def lm-hosts-api "/api/lm/v1/%s/hosts")
 
-(defn ^:private auth-header
-  "The Alert Logic API handles authentication by accepting an
-  API token as a username with an empty password."
-  [api-token]
-  (let [username-and-password (str api-token ":")
-        encoded (base64/encode username-and-password)]
-    {"Authorization" (str/join " " ["Basic" encoded])}))
-
-(defn ^:private al-headers
-  "The Alert Logic API exclusively serves JSON, so we must set
-  the 'Accept' header."
-  [api-token]
-  (merge {"Accept" "application/json"}
-         (auth-header api-token)))
-
 (defn get-page!
   "Gets a page from the Alert Logic API.
 
   The url should be a full path. The api-token is provided
-  for authentication by Alert Logic."
+  for authentication by Alert Logic.
+
+  The Alert Logic API exclusively serves JSON, so we must set
+  the 'Accept' header."
   [url api-token]
-  (info "fetching" url)
-  (let [headers (al-headers api-token)]
-    (-> (md/chain
-         (http/get url {:headers headers})
-         :body
-         bs/to-reader
-         #(json/parse-stream % ->kebab-case-keyword))
-        (md/catch
-         Exception
-         #(do (warn "problem fetching events page:" (.getMessage %))
-              ::fetch-error)))))
+  (info "Fetching" url)
+  (md/chain
+   (http/get url {:headers {"Accept" "application/json"}
+                  :basic-auth [api-token]})
+   :body
+   bs/to-reader
+   #(json/parse-stream % ->kebab-case-keyword)))
 
 (defn ^:private customer-json-to-id-map
   "Immutable logic for processing customer JSON, returning a
