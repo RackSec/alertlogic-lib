@@ -63,7 +63,7 @@
       (testing "handles download and formatting"
         (let [expected {"123" "101"
                         "746228" "1111"}
-              output (get-customers-map! "31337" "supar-sekret")]
+              output @(get-customers-map! "31337" "supar-sekret")]
           (is (= expected output)))))))
 
 (defn use-atom-log-appender!

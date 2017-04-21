@@ -68,7 +68,8 @@
   Provided root-customer-id must correspond to an Alert Logic
   customer ID (integer string)."
   [root-customer-id api-token]
-  (customer-json-to-id-map @(get-customers! root-customer-id api-token)))
+  (md/chain (get-customers! root-customer-id api-token)
+            customer-json-to-id-map))
 
 (defn get-lm-devices-for-customer!
   "Gets a list of devices active in the Alert Logic Log
