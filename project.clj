@@ -6,7 +6,6 @@
             :url "http://www.eclipse.org/legal/epl-v10.html"}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [aleph "0.4.1"]
-                 [base64-clj "0.1.1"]
                  [camel-snake-kebab "0.4.0"]
                  [cheshire "5.6.3"]
                  [com.taoensso/timbre "4.7.4"]
