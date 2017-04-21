@@ -1,4 +1,4 @@
-(defproject alertlogic-lib "0.1.3-SNAPSHOT"
+(defproject alertlogic-lib "0.2.0-SNAPSHOT"
   :description "A library for interacting with Alert Logic APIs."
   :lein-release {:deploy-via :clojars}
   :url "http://github.com/RackSec/alertlogic-lib"
@@ -16,6 +16,7 @@
             [lein-cloverage "1.0.9"]]
   :min-lein-version "2.7.0"
   :profiles {:uberjar {:aot :all}
+             :repl {:main alertlogic-lib.core}
              :dev {:dependencies [[pjstadig/humane-test-output "0.8.1"]]
                    :injections [(require 'pjstadig.humane-test-output)
                                 (pjstadig.humane-test-output/activate!)]}})
