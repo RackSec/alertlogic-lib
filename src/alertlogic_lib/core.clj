@@ -1,5 +1,6 @@
 (ns alertlogic-lib.core
   (:require
+   [clojure.set :refer [rename-keys]]
    [clojure.string :as str]
    [aleph.http :as http]
    [byte-streams :as bs]
@@ -57,7 +58,8 @@
   "Fetches customer info from the Alert Logic API."
   [root-customer-id api-token]
   (let [url (str base-url (format customer-api root-customer-id))]
-    (:child-chain @(get-page! url api-token))))
+    (md/chain (get-page! url api-token)
+              :child-chain)))
 
 (defn get-customers-map!
   "Given a root customer ID, returns a map of child customer
@@ -66,7 +68,8 @@
   Provided root-customer-id must correspond to an Alert Logic
   customer ID (integer string)."
   [root-customer-id api-token]
-  (customer-json-to-id-map (get-customers! root-customer-id api-token)))
+  (md/chain (get-customers! root-customer-id api-token)
+            customer-json-to-id-map))
 
 (defn get-lm-devices-for-customer!
   "Gets a list of devices active in the Alert Logic Log
@@ -76,14 +79,18 @@
   (integer string)."
   [customer-id api-token]
   (if (nil? customer-id)
-    (error "Customer ID cannot be nil. Aborting.")
+    (do
+      (error "Customer ID cannot be nil. Aborting.")
+      (md/success-deferred []))
     (let [url (str base-url-public (format lm-hosts-api customer-id))
-          hosts (:hosts @(get-page! url api-token))
           cleanup-host
-          (fn [host]
-            (let [{{:keys [name status metadata type]} :host} host]
-              {:name name
-               :status (:status status)
-               :ips (:local-ipv-4 metadata)
-               :type type}))]
-      (map cleanup-host hosts))))
+          (fn [{:keys [host]}]
+            (let [{:keys [status metadata]} host]
+              (merge
+               (rename-keys host {:status :status-data})
+               {:status (:status status)
+                :ips (:local-ipv-4 metadata)})))]
+      (md/chain
+       (get-page! url api-token)
+       :hosts
+       #(map cleanup-host %)))))  ;; transducer version of map doesn't work here
