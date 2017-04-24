@@ -1,4 +1,4 @@
-(defproject alertlogic-lib "0.2.0"
+(defproject alertlogic-lib "0.2.1-SNAPSHOT"
   :description "A library for interacting with Alert Logic APIs."
   :lein-release {:deploy-via :clojars}
   :url "http://github.com/RackSec/alertlogic-lib"
