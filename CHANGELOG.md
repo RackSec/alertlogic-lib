@@ -1,3 +1,11 @@
+# 0.2.0
+
+API changes:
+
+- Return deferreds instead of dereferencing them for the consumer.
+- Return all data from the AL API instead of filtering it down to name, device
+  type, status and IP addresses.
+
 # 0.1.2
 
 Enhancement: warns user when they attempt to query Log Manager devices for a
