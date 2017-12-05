@@ -51,7 +51,7 @@
                      (remove #(nil? (:id %))))  ;; might be some non-matches
         add-customer-to-map
         (fn [customer-map customer]
-          (assoc customer-map (:id customer) (str (:al-id customer))))]
+          (update customer-map (:id customer) conj (str (:al-id customer))))]
     (reduce add-customer-to-map {} id-list)))
 
 (defn get-customers!
