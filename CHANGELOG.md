@@ -1,3 +1,10 @@
+# 0.3.0
+
+API changes:
+
+- AL Customer IDs in the customer map are returned as a list of matching IDs,
+  for those customers that have multiple AL accounts.
+
 # 0.2.0
 
 API changes:

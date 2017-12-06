@@ -31,8 +31,6 @@
 
 (deftest customer-json-to-id-map-tests
   (let [cj->id #'alertlogic-lib.core/customer-json-to-id-map
-        customers-map {"123" "101"
-                       "746228" "1111"}
         check-output (fn [input expected]
                        (is (= expected (cj->id input))))]
     (testing "handles empty case"
@@ -45,9 +43,17 @@
         (check-output customer-data {})))
     (testing "handles good customer names"
       (let [customer-data [{:customer-id 101 :customer-name "123-lol"}]]
-        (check-output customer-data {"123" "101"})))
+        (check-output customer-data {"123" ["101"]})))
     (testing "handles many customers"
-      (check-output customers customers-map))))
+      (let [customer-data {"123" ["101"]
+                           "746228" ["1111"]}]
+        (check-output customers customer-data)))
+    (testing "handles repeat accounts"
+      (let [customers (conj customers {:customer-id 111
+                                       :customer-name "123-lol 2"})
+            customer-data {"123" ["111" "101"]
+                           "746228" ["1111"]}]
+        (check-output customers customer-data)))))
 
 (deftest get-customers!-tests
   (let [root-customer-data {:api-key "supar-sekret"
@@ -61,8 +67,8 @@
               output @(get-customers! "31337" "supar-sekret")]
           (is (= expected output))))
       (testing "handles download and formatting"
-        (let [expected {"123" "101"
-                        "746228" "1111"}
+        (let [expected {"123" ["101"]
+                        "746228" ["1111"]}
               output @(get-customers-map! "31337" "supar-sekret")]
           (is (= expected output)))))))
 
