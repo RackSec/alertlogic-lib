@@ -15,6 +15,7 @@
 
 (def base-url "https://api.alertlogic.net")
 (def lm-hosts-api "/api/lm/v1/%s/hosts")
+(def lm-sources-api "/api/lm/v1/%s/sources")
 
 (defn get-page!
   "Gets a page from the Alert Logic API.
@@ -94,3 +95,19 @@
        (get-page! url api-token)
        :hosts
        #(map cleanup-host %)))))  ;; transducer version of map doesn't work here
+
+(defn get-sources-for-customer!
+  "Gets a list of sources active in the Alert Logic Log
+  Manager for a given customer.
+
+  Provided customer-id must be the Alert Logic customer ID
+  (integer string)."
+  [customer-id api-token]
+  (if (nil? customer-id)
+    (do
+      (error "Customer ID cannot be nil. Aborting.")
+      (md/success-deferred []))
+    (let [url (str base-url-public (format lm-sources-api customer-id))]
+      (md/chain
+       (get-page! url api-token)
+       :sources))))

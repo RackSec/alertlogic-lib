@@ -112,3 +112,24 @@
                            read-string)
               output @(get-lm-devices-for-customer! "1111" "some-token")]
           (is (= expected output)))))))
+
+(deftest get-sources!-tests
+  (testing "taps out when id is null"
+    (let [log (use-atom-log-appender!)]
+      @(get-sources-for-customer! nil "some-token")
+      (is (= 1 (count @log)))
+      (is (s/includes? (first @log) "Customer ID cannot be nil. Aborting."))))
+  (testing "handles an empty device list"
+    (let [fake-get (fake-get-success {:hosts []})]
+      (with-redefs [aleph.http/get fake-get]
+        (is (empty? @(get-sources-for-customer! "1111" "some-token"))))))
+  (testing "handles some devices"
+    (let [body (-> "test/sources.edn" resource slurp read-string)
+          fake-get (fake-get-success body)]
+      (with-redefs [aleph.http/get fake-get]
+        (let [expected (-> "test/processed-sources.edn"
+                           resource
+                           slurp
+                           read-string)
+              output @(get-sources-for-customer! "1111" "some-token")]
+          (is (= expected output)))))))
