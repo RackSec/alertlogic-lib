@@ -16,6 +16,7 @@
 (def base-url "https://api.alertlogic.net")
 (def lm-hosts-api "/api/lm/v1/%s/hosts")
 (def lm-sources-api "/api/lm/v1/%s/sources")
+(def tm-prothosts-api "/api/tm/v1/%s/protectedhosts")
 
 (defn get-page!
   "Gets a page from the Alert Logic API.
@@ -111,3 +112,19 @@
       (md/chain
        (get-page! url api-token)
        :sources))))
+
+(defn get-prothosts-for-customer!
+  "Gets a list of protected hosts active in the Alert Logic
+  Threat Manager for a given customer.
+
+  Provided customer-id must be the Alert Logic customer ID
+  (integer string)."
+  [customer-id api-token]
+  (if (nil? customer-id)
+    (do
+      (error "Customer ID cannot be nil. Aborting.")
+      (md/success-deferred []))
+    (let [url (str base-url-public (format tm-prothosts-api customer-id))]
+      (md/chain
+       (get-page! url api-token)
+       :protectedhosts))))
