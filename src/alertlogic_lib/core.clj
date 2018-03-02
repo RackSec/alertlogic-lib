@@ -73,6 +73,38 @@
   (md/chain (get-customers! root-customer-id api-token)
             customer-json-to-id-map))
 
+(defn get-prothosts-for-customer!
+  "Gets a list of protected hosts active in the Alert Logic
+  Threat Manager for a given customer.
+
+  Provided customer-id must be the Alert Logic customer ID
+  (integer string)."
+  [customer-id api-token]
+  (if (nil? customer-id)
+    (do
+      (error "Customer ID cannot be nil. Aborting.")
+      (md/success-deferred []))
+    (let [url (str base-url-public (format tm-prothosts-api customer-id))]
+      (md/chain
+       (get-page! url api-token)
+       :protectedhosts))))
+
+(defn cleanup-host
+  [{:keys [host]}]
+  (let [{:keys [status metadata]} host]
+    (merge
+     (rename-keys host {:status :status-data})
+     {:status (:status status)
+      :ips (:local-ipv-4 metadata)})))
+
+(defn cleanup-prothost
+  [{:keys [protectedhost]}]
+  (let [{:keys [status metadata]} protectedhost]
+    (merge
+     (rename-keys protectedhost {:status :status-data})
+     {:tm-status (:status status)
+      :error (-> status :details first :error)})))
+
 (defn get-lm-devices-for-customer!
   "Gets a list of devices active in the Alert Logic Log
   Manager for a given customer.
@@ -84,18 +116,19 @@
     (do
       (error "Customer ID cannot be nil. Aborting.")
       (md/success-deferred []))
-    (let [url (str base-url-public (format lm-hosts-api customer-id))
-          cleanup-host
-          (fn [{:keys [host]}]
-            (let [{:keys [status metadata]} host]
-              (merge
-               (rename-keys host {:status :status-data})
-               {:status (:status status)
-                :ips (:local-ipv-4 metadata)})))]
+    (let [url-hosts (str base-url-public (format lm-hosts-api customer-id))
+          prothosts (md/chain
+                     (get-prothosts-for-customer! customer-id api-token)
+                     #(map cleanup-prothost %))
+          add-matching-prothost
+          (fn [host]
+            (merge (first (filter #(= (:id host) (:host-id %)) @prothosts))
+                   host))]
       (md/chain
-       (get-page! url api-token)
+       (get-page! url-hosts api-token)
        :hosts
-       #(map cleanup-host %)))))  ;; transducer version of map doesn't work here
+       #(map cleanup-host %)
+       #(map add-matching-prothost %)))))
 
 (defn get-sources-for-customer!
   "Gets a list of sources active in the Alert Logic Log
@@ -112,19 +145,3 @@
       (md/chain
        (get-page! url api-token)
        :sources))))
-
-(defn get-prothosts-for-customer!
-  "Gets a list of protected hosts active in the Alert Logic
-  Threat Manager for a given customer.
-
-  Provided customer-id must be the Alert Logic customer ID
-  (integer string)."
-  [customer-id api-token]
-  (if (nil? customer-id)
-    (do
-      (error "Customer ID cannot be nil. Aborting.")
-      (md/success-deferred []))
-    (let [url (str base-url-public (format tm-prothosts-api customer-id))]
-      (md/chain
-       (get-page! url api-token)
-       :protectedhosts))))
