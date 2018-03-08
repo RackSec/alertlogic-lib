@@ -90,6 +90,11 @@
        :protectedhosts))))
 
 (defn cleanup-host
+  "Cleans up data in the map for a host.
+
+  Renames :status to :status-data, adds a :status key from the original
+  :status map, and adds a separate :ips field from :metadata's
+  :local-ipv-4."
   [{:keys [host]}]
   (let [{:keys [status metadata]} host]
     (merge
@@ -98,8 +103,10 @@
       :ips (:local-ipv-4 metadata)})))
 
 (defn cleanup-prothost
+  "Cleans data for protected hosts. Renames :status to :status-data,
+  adds :tm-status and :errors from status data."
   [{:keys [protectedhost]}]
-  (let [{:keys [status metadata]} protectedhost]
+  (let [{:keys [status]} protectedhost]
     (merge
      (rename-keys protectedhost {:status :status-data})
      {:tm-status (:status status)

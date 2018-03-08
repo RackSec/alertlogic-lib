@@ -92,6 +92,71 @@
         :fn log-appender-fn}}})
     log))
 
+(deftest cleanup-host-tests
+  (testing "Host data with relevant expected keys"
+    (let [fake-host-data {:host {:status {:status "amazing"}
+                                 :metadata {:local-ipv-4 ["10.15.0.1"
+                                                          "192.168.0.13"]}
+                                 :name "one okay host"}}
+          expected {:metadata {:local-ipv-4 ["10.15.0.1" "192.168.0.13"]},
+                    :name "one okay host",
+                    :status-data {:status "amazing"},
+                    :status "amazing",
+                    :ips ["10.15.0.1" "192.168.0.13"]}
+          output (cleanup-host fake-host-data)]
+      (is (= expected output))))
+  (testing "Input map lacks expected key"
+    (let [bad-host-data {:host {:status {:status "Okay status in bad map"}
+                                :name "bad-map-10000"}}
+          expected {:status "Okay status in bad map"
+                    :status-data {:status "Okay status in bad map"}
+                    :ips nil
+                    :name "bad-map-10000"}
+          output (cleanup-host bad-host-data)]
+      (is (= expected output))))
+  (testing "nil input"
+    (let [expected {:status nil
+                    :ips nil}
+          output (cleanup-host nil)]
+      (is (= expected output)))))
+
+(deftest cleanup-prothost-tests
+  (testing "Protected host data with relevant expected keys, no error"
+    (let [fake-prothost-data {:protectedhost {:status {:details []
+                                                       :status "awesome"}
+                                              :name "such a protected host"}}
+          expected {:name "such a protected host"
+                    :status-data {:details []
+                                  :status "awesome"}
+                    :tm-status "awesome"
+                    :error nil}
+          output (cleanup-prothost fake-prothost-data)]
+      (is(= expected output))))
+  (testing "Protected host data with relevant expected keys and error"
+    (let [fake-prothost-data {:protectedhost {:status
+                                              {:details [{:error "oh no"}]
+                                               :status "not so awesome"}
+                                              :name "not a protected host"}}
+          expected {:name "not a protected host"
+                    :status-data {:details [{:error "oh no"}]
+                                  :status "not so awesome"}
+                    :tm-status "not so awesome"
+                    :error "oh no"}
+          output (cleanup-prothost fake-prothost-data)]
+      (is (= expected output))))
+  (testing "Protected host map lacks expected key"
+    (let [fake-prothost-data {:protectedhost {:name "malformed data"}}
+          expected {:name "malformed data"
+                    :tm-status nil
+                    :error nil}
+          output (cleanup-prothost fake-prothost-data)]
+      (is (= expected output))))
+  (testing "nil input"
+    (let [expected {:tm-status nil
+                    :error nil}
+          output (cleanup-prothost nil)]
+      (is (= expected output)))))
+
 (deftest get-lm-devices!-tests
   (testing "taps out when id is null"
     (let [log (use-atom-log-appender!)]
