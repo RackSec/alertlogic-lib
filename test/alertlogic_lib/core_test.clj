@@ -92,6 +92,27 @@
         :fn log-appender-fn}}})
     log))
 
+(deftest get-prothosts!-tests
+  (testing "taps out when id is null"
+    (let [log (use-atom-log-appender!)]
+      @(get-prothosts-for-customer! nil "some-token")
+      (is (= 1 (count @log)))
+      (is (s/includes? (first @log) "Customer ID cannot be nil. Aborting."))))
+  (testing "handles an empty device list"
+    (let [fake-get-page (fn [url token] {:hosts []})]
+      (with-redefs [alc/get-page! fake-get-page]
+        (is (empty? @(get-prothosts-for-customer! "1111" "some-token"))))))
+  (testing "handles some devices"
+    (let [prothost-body (-> "test/prothosts.edn" resource slurp read-string)
+          fake-get-page (fn [url token] prothost-body)]
+    (with-redefs [alc/get-page! fake-get-page]
+      (let [expected (-> "test/processed-prothosts.edn"
+                         resource
+                         slurp
+                         read-string)
+            output @(get-prothosts-for-customer! "1111" "some token")]
+        (is (= expected output)))))))
+
 (deftest cleanup-host-tests
   (testing "Host data with relevant expected keys"
     (let [fake-host-data {:host {:status {:status "amazing"}
@@ -167,11 +188,31 @@
     (let [fake-get (fake-get-success {:hosts []})]
       (with-redefs [aleph.http/get fake-get]
         (is (empty? @(get-lm-devices-for-customer! "1111" "some-token"))))))
-  (testing "handles some devices"
+  (testing "handles some devices with no protected host reply"
     (let [body (-> "test/hosts.edn" resource slurp read-string)
           fake-get (fake-get-success body)]
       (with-redefs [aleph.http/get fake-get]
         (let [expected (-> "test/processed-hosts.edn"
+                           resource
+                           slurp
+                           read-string)
+              output @(get-lm-devices-for-customer! "1111" "some-token")]
+          (is (= expected output))))))
+  (testing "handles some devices with protected hosts"
+    ;; mock both host and protectedhost endpoints
+    (let [hosts-url
+          "https://publicapi.alertlogic.net/api/lm/v1/1111/hosts"
+          prothosts-url
+          "https://publicapi.alertlogic.net/api/tm/v1/1111/protectedhosts"
+          hosts-body (-> "test/hosts.edn" resource slurp read-string)
+          prothosts-body (-> "test/prothosts.edn" resource slurp read-string)
+          fake-get-page (fn [url token]
+                          (cond
+                            (= url hosts-url) hosts-body
+                            (= url prothosts-url) prothosts-body
+                            :else "oh no, unexpected url"))]
+      (with-redefs [alc/get-page! fake-get-page]
+        (let [expected (-> "test/processed-hosts-with-prothosts.edn"
                            resource
                            slurp
                            read-string)
