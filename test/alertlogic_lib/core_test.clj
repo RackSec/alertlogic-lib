@@ -103,10 +103,12 @@
       (with-redefs [alc/get-page! fake-get-page]
         (is (empty? @(get-prothosts-for-customer! "1111" "some-token"))))))
   (testing "handles some devices"
-    (let [prothost-body (-> "test/prothosts.edn" resource slurp read-string)
-          fake-get-page (fn [url token] prothost-body)]
+    (let [prothost-body
+          (-> "test/prothosts-faws.edn" resource slurp read-string)
+          fake-get-page
+          (fn [url token] prothost-body)]
     (with-redefs [alc/get-page! fake-get-page]
-      (let [expected (-> "test/processed-prothosts.edn"
+      (let [expected (-> "test/processed-prothosts-faws.edn"
                          resource
                          slurp
                          read-string)
@@ -204,15 +206,17 @@
           "https://publicapi.alertlogic.net/api/lm/v1/1111/hosts"
           prothosts-url
           "https://publicapi.alertlogic.net/api/tm/v1/1111/protectedhosts"
-          hosts-body (-> "test/hosts.edn" resource slurp read-string)
-          prothosts-body (-> "test/prothosts.edn" resource slurp read-string)
+          hosts-body
+          (-> "test/hosts-faws.edn" resource slurp read-string)
+          prothosts-body
+          (-> "test/prothosts-faws.edn" resource slurp read-string)
           fake-get-page (fn [url token]
                           (cond
                             (= url hosts-url) hosts-body
                             (= url prothosts-url) prothosts-body
                             :else "oh no, unexpected url"))]
       (with-redefs [alc/get-page! fake-get-page]
-        (let [expected (-> "test/processed-hosts-with-prothosts.edn"
+        (let [expected (-> "test/processed-hosts-faws.edn"
                            resource
                            slurp
                            read-string)
@@ -229,11 +233,21 @@
     (let [fake-get (fake-get-success {:hosts []})]
       (with-redefs [aleph.http/get fake-get]
         (is (empty? @(get-sources-for-customer! "1111" "some-token"))))))
-  (testing "handles some devices"
+  (testing "handles some devices (DED)"
     (let [body (-> "test/sources.edn" resource slurp read-string)
           fake-get (fake-get-success body)]
       (with-redefs [aleph.http/get fake-get]
         (let [expected (-> "test/processed-sources.edn"
+                           resource
+                           slurp
+                           read-string)
+              output @(get-sources-for-customer! "1111" "some-token")]
+          (is (= expected output))))))
+  (testing "handles some devices (FAWS)"
+    (let [body (-> "test/sources-faws.edn" resource slurp read-string)
+          fake-get (fake-get-success body)]
+      (with-redefs [aleph.http/get fake-get]
+        (let [expected (-> "test/processed-sources-faws.edn"
                            resource
                            slurp
                            read-string)
