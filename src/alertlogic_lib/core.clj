@@ -129,12 +129,12 @@
             (merge (first (filter #(= (:id host) (:host-id %)) prothosts))
                    host))]
       (md/chain
-        (apply md/zip [(get-page! url-hosts api-token)
-                       (get-prothosts-for-customer! customer-id api-token)])
-        (fn [[raw-hosts raw-prothosts]]
-          (let [hosts (map cleanup-host (:hosts raw-hosts))
-                prothosts (map cleanup-prothost raw-prothosts)]
-            (map #(add-matching-prothost % prothosts) hosts)))))))
+       (apply md/zip [(get-page! url-hosts api-token)
+                      (get-prothosts-for-customer! customer-id api-token)])
+       (fn [[raw-hosts raw-prothosts]]
+         (let [hosts (map cleanup-host (:hosts raw-hosts))
+               prothosts (map cleanup-prothost raw-prothosts)]
+           (map #(add-matching-prothost % prothosts) hosts)))))))
 
 (defn get-sources-for-customer!
   "Gets a list of sources active in the Alert Logic Log

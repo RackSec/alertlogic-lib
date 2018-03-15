@@ -107,13 +107,13 @@
           (-> "test/prothosts-faws.edn" resource slurp read-string)
           fake-get-page
           (fn [url token] prothost-body)]
-    (with-redefs [alc/get-page! fake-get-page]
-      (let [expected (-> "test/processed-prothosts-faws.edn"
-                         resource
-                         slurp
-                         read-string)
-            output @(get-prothosts-for-customer! "1111" "some token")]
-        (is (= expected output)))))))
+      (with-redefs [alc/get-page! fake-get-page]
+        (let [expected (-> "test/processed-prothosts-faws.edn"
+                           resource
+                           slurp
+                           read-string)
+              output @(get-prothosts-for-customer! "1111" "some token")]
+          (is (= expected output)))))))
 
 (deftest cleanup-host-tests
   (testing "Host data with relevant expected keys"
@@ -154,7 +154,7 @@
                     :tm-status "awesome"
                     :error nil}
           output (cleanup-prothost fake-prothost-data)]
-      (is(= expected output))))
+      (is (= expected output))))
   (testing "Protected host data with relevant expected keys and error"
     (let [fake-prothost-data {:protectedhost {:status
                                               {:details [{:error "oh no"}]
