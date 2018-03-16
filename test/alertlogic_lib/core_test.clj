@@ -92,6 +92,13 @@
         :fn log-appender-fn}}})
     log))
 
+(defn load-test-data!
+  "Load test data from a given filename.
+
+  Returns a string containing the test data."
+  [path]
+  (-> path resource slurp read-string))
+
 (deftest get-prothosts!-tests
   (testing "taps out when id is null"
     (let [log (use-atom-log-appender!)]
@@ -99,20 +106,25 @@
       (is (= 1 (count @log)))
       (is (s/includes? (first @log) "Customer ID cannot be nil. Aborting."))))
   (testing "handles an empty device list"
-    (let [fake-get-page (fn [url token] {:hosts []})]
-      (with-redefs [alc/get-page! fake-get-page]
+    (let [prothosts-endpoint
+          "https://publicapi.alertlogic.net/api/tm/v1/1111/protectedhosts"]
+      (with-redefs [alc/get-page!
+                    (fn [url token]
+                      (is (= prothosts-endpoint url))
+                      (is (= "some-token" token))
+                      (md/success-deferred {:hosts []}))]
         (is (empty? @(get-prothosts-for-customer! "1111" "some-token"))))))
   (testing "handles some devices"
-    (let [prothost-body
-          (-> "test/prothosts-faws.edn" resource slurp read-string)
-          fake-get-page
-          (fn [url token] prothost-body)]
-      (with-redefs [alc/get-page! fake-get-page]
-        (let [expected (-> "test/processed-prothosts-faws.edn"
-                           resource
-                           slurp
-                           read-string)
-              output @(get-prothosts-for-customer! "1111" "some token")]
+    (let [prothosts-endpoint
+          "https://publicapi.alertlogic.net/api/tm/v1/1111/protectedhosts"]
+      (with-redefs [alc/get-page!
+                    (fn [url token]
+                      (is (= prothosts-endpoint url))
+                      (is (= "some-token" token))
+                      (md/success-deferred (load-test-data!
+                                            "test/prothosts-faws.edn")))]
+        (let [expected (load-test-data! "test/processed-prothosts-faws.edn")
+              output @(get-prothosts-for-customer! "1111" "some-token")]
           (is (= expected output)))))))
 
 (deftest cleanup-host-tests
@@ -191,35 +203,29 @@
       (with-redefs [aleph.http/get fake-get]
         (is (empty? @(get-lm-devices-for-customer! "1111" "some-token"))))))
   (testing "handles some devices with no protected host reply"
-    (let [body (-> "test/hosts.edn" resource slurp read-string)
+    (let [body (load-test-data! "test/hosts.edn")
           fake-get (fake-get-success body)]
       (with-redefs [aleph.http/get fake-get]
-        (let [expected (-> "test/processed-hosts.edn"
-                           resource
-                           slurp
-                           read-string)
+        (let [expected (load-test-data! "test/processed-hosts.edn")
               output @(get-lm-devices-for-customer! "1111" "some-token")]
           (is (= expected output))))))
   (testing "handles some devices with protected hosts"
     ;; mock both host and protectedhost endpoints
-    (let [hosts-url
+    (let [hosts-endpoint
           "https://publicapi.alertlogic.net/api/lm/v1/1111/hosts"
-          prothosts-url
-          "https://publicapi.alertlogic.net/api/tm/v1/1111/protectedhosts"
-          hosts-body
-          (-> "test/hosts-faws.edn" resource slurp read-string)
-          prothosts-body
-          (-> "test/prothosts-faws.edn" resource slurp read-string)
-          fake-get-page (fn [url token]
-                          (cond
-                            (= url hosts-url) hosts-body
-                            (= url prothosts-url) prothosts-body
-                            :else "oh no, unexpected url"))]
-      (with-redefs [alc/get-page! fake-get-page]
-        (let [expected (-> "test/processed-hosts-faws.edn"
-                           resource
-                           slurp
-                           read-string)
+          prothosts-endpoint
+          "https://publicapi.alertlogic.net/api/tm/v1/1111/protectedhosts"]
+      (with-redefs [alc/get-page!
+                    (fn [url token]
+                      (is (= "some-token" token))
+                      (md/success-deferred
+                       (cond
+                         (= url hosts-endpoint) (load-test-data!
+                                                 "test/hosts-faws.edn")
+                         (= url prothosts-endpoint) (load-test-data!
+                                                     "test/prothosts-faws.edn")
+                         :else "oh no, unexpected url")))]
+        (let [expected (load-test-data! "test/processed-hosts-faws.edn")
               output @(get-lm-devices-for-customer! "1111" "some-token")]
           (is (= expected output)))))))
 
@@ -234,22 +240,16 @@
       (with-redefs [aleph.http/get fake-get]
         (is (empty? @(get-sources-for-customer! "1111" "some-token"))))))
   (testing "handles some devices (DED)"
-    (let [body (-> "test/sources.edn" resource slurp read-string)
+    (let [body (load-test-data! "test/sources.edn")
           fake-get (fake-get-success body)]
       (with-redefs [aleph.http/get fake-get]
-        (let [expected (-> "test/processed-sources.edn"
-                           resource
-                           slurp
-                           read-string)
+        (let [expected (load-test-data! "test/processed-sources.edn")
               output @(get-sources-for-customer! "1111" "some-token")]
           (is (= expected output))))))
   (testing "handles some devices (FAWS)"
-    (let [body (-> "test/sources-faws.edn" resource slurp read-string)
+    (let [body (load-test-data! "test/sources-faws.edn")
           fake-get (fake-get-success body)]
       (with-redefs [aleph.http/get fake-get]
-        (let [expected (-> "test/processed-sources-faws.edn"
-                           resource
-                           slurp
-                           read-string)
+        (let [expected (load-test-data! "test/processed-sources-faws.edn")
               output @(get-sources-for-customer! "1111" "some-token")]
           (is (= expected output)))))))

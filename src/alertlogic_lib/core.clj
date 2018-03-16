@@ -134,6 +134,8 @@
        (fn [[raw-hosts raw-prothosts]]
          (let [hosts (map cleanup-host (:hosts raw-hosts))
                prothosts (map cleanup-prothost raw-prothosts)]
+           ;; TODO(fhocutt): This is O(hosts*prothosts), possible optimization
+           ;;                point if large customers are a problem
            (map #(add-matching-prothost % prothosts) hosts)))))))
 
 (defn get-sources-for-customer!
