@@ -16,6 +16,7 @@
 (def base-url "https://api.alertlogic.net")
 (def lm-hosts-api "/api/lm/v1/%s/hosts")
 (def lm-sources-api "/api/lm/v1/%s/sources")
+(def tm-prothosts-api "/api/tm/v1/%s/protectedhosts")
 
 (defn get-page!
   "Gets a page from the Alert Logic API.
@@ -72,6 +73,45 @@
   (md/chain (get-customers! root-customer-id api-token)
             customer-json-to-id-map))
 
+(defn get-prothosts-for-customer!
+  "Gets a list of protected hosts active in the Alert Logic
+  Threat Manager for a given customer.
+
+  Provided customer-id must be the Alert Logic customer ID
+  (integer string)."
+  [customer-id api-token]
+  (if (nil? customer-id)
+    (do
+      (error "Customer ID cannot be nil. Aborting.")
+      (md/success-deferred []))
+    (let [url (str base-url-public (format tm-prothosts-api customer-id))]
+      (md/chain
+       (get-page! url api-token)
+       :protectedhosts))))
+
+(defn cleanup-host
+  "Cleans up data in the map for a host.
+
+  Renames :status to :status-data, adds a :status key from the original
+  :status map, and adds a separate :ips field from :metadata's
+  :local-ipv-4."
+  [{:keys [host]}]
+  (let [{:keys [status metadata]} host]
+    (merge
+     (rename-keys host {:status :status-data})
+     {:status (:status status)
+      :ips (:local-ipv-4 metadata)})))
+
+(defn cleanup-prothost
+  "Cleans data for protected hosts. Renames :status to :status-data,
+  adds :tm-status and :errors from status data."
+  [{:keys [protectedhost]}]
+  (let [{:keys [status]} protectedhost]
+    (merge
+     (rename-keys protectedhost {:status :status-data})
+     {:tm-status (:status status)
+      :error (-> status :details first :error)})))
+
 (defn get-lm-devices-for-customer!
   "Gets a list of devices active in the Alert Logic Log
   Manager for a given customer.
@@ -83,18 +123,20 @@
     (do
       (error "Customer ID cannot be nil. Aborting.")
       (md/success-deferred []))
-    (let [url (str base-url-public (format lm-hosts-api customer-id))
-          cleanup-host
-          (fn [{:keys [host]}]
-            (let [{:keys [status metadata]} host]
-              (merge
-               (rename-keys host {:status :status-data})
-               {:status (:status status)
-                :ips (:local-ipv-4 metadata)})))]
+    (let [url-hosts (str base-url-public (format lm-hosts-api customer-id))
+          add-matching-prothost
+          (fn [host prothosts]
+            (merge (first (filter #(= (:id host) (:host-id %)) prothosts))
+                   host))]
       (md/chain
-       (get-page! url api-token)
-       :hosts
-       #(map cleanup-host %)))))  ;; transducer version of map doesn't work here
+       (apply md/zip [(get-page! url-hosts api-token)
+                      (get-prothosts-for-customer! customer-id api-token)])
+       (fn [[raw-hosts raw-prothosts]]
+         (let [hosts (map cleanup-host (:hosts raw-hosts))
+               prothosts (map cleanup-prothost raw-prothosts)]
+           ;; TODO(fhocutt): This is O(hosts*prothosts), possible optimization
+           ;;                point if large customers are a problem
+           (map #(add-matching-prothost % prothosts) hosts)))))))
 
 (defn get-sources-for-customer!
   "Gets a list of sources active in the Alert Logic Log
