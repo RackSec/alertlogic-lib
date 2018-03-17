@@ -1,3 +1,10 @@
+# 0.4.0
+
+API changes:
+
+- Add sources endpoint
+- Add protected host status and errors, if any, to host data
+
 # 0.3.0
 
 API changes:
